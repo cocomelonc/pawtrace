@@ -215,13 +215,8 @@ int pt_trace_launch(char **argv, const struct pt_config *cfg) {
         state_get(&states, new_pid);
         (void)set_opts(new_pid);
         (void)resume_syscall(new_pid, 0);
-      } else if (event == PTRACE_EVENT_EXEC && cfg->maps) {
-        if (cfg->json) {
-          pt_dump_maps_json(cfg->out, pid);
-        } else {
-          pt_dump_maps(cfg->out, pid);
-        }
-      } else if (event == PTRACE_EVENT_EXIT && cfg->maps) {
+      } else if (cfg->maps &&
+             (event == PTRACE_EVENT_EXEC || event == PTRACE_EVENT_EXIT)) {
         if (cfg->json) {
           pt_dump_maps_json(cfg->out, pid);
         } else {

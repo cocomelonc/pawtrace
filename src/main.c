@@ -48,17 +48,29 @@ int main(int argc, char **argv) {
       cfg.json = true;
     } else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--maps")) {
       cfg.maps = true;
-    } else if ((!strcmp(argv[i], "-s") || !strcmp(argv[i], "--string-max")) && i + 1 < argc) {
+    } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--string-max")) {
+      if (i + 1 >= argc) {
+        fprintf(stderr, "%s requires an argument\n", argv[i]);
+        return 2;
+      }
       if (parse_size(argv[++i], &cfg.string_max) < 0) {
         fprintf(stderr, "invalid string max: %s\n", argv[i]);
         return 2;
       }
-    } else if ((!strcmp(argv[i], "-p") || !strcmp(argv[i], "--preview-max")) && i + 1 < argc) {
+    } else if (!strcmp(argv[i], "-p") || !strcmp(argv[i], "--preview-max")) {
+      if (i + 1 >= argc) {
+        fprintf(stderr, "%s requires an argument\n", argv[i]);
+        return 2;
+      }
       if (parse_size(argv[++i], &cfg.preview_max) < 0) {
         fprintf(stderr, "invalid preview max: %s\n", argv[i]);
         return 2;
       }
-    } else if ((!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output")) && i + 1 < argc) {
+    } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output")) {
+      if (i + 1 >= argc) {
+        fprintf(stderr, "%s requires an argument\n", argv[i]);
+        return 2;
+      }
       cfg.out = fopen(argv[++i], "w");
       if (!cfg.out) {
         perror("fopen");

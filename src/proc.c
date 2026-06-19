@@ -22,24 +22,6 @@ char *pt_fd_path(pid_t pid, int fd) {
   return buf;
 }
 
-static void proc_json_escape(FILE *out, const char *s) {
-  for (; s && *s; s++) {
-    unsigned char c = (unsigned char)*s;
-    if (c == '"' || c == '\\') {
-      fputc('\\', out);
-      fputc(c, out);
-    } else if (c == '\n') {
-      fputs("\\n", out);
-    } else if (c == '\t') {
-      fputs("\\t", out);
-    } else if (c < 32) {
-      fprintf(out, "\\u%04x", c);
-    } else {
-      fputc(c, out);
-    }
-  }
-}
-
 void pt_dump_maps(FILE *out, pid_t pid) {
   char path[64];
   snprintf(path, sizeof(path), "/proc/%d/maps", pid);
@@ -70,7 +52,7 @@ void pt_dump_maps_json(FILE *out, pid_t pid) {
   char line[4096];
   while (fgets(line, sizeof(line), f)) {
     fprintf(out, "{\"event\":\"maps-line\",\"pid\":%d,\"line\":\"", pid);
-    proc_json_escape(out, line);
+    pt_json_escape(out, line);
     fputs("\"}\n", out);
   }
   fclose(f);

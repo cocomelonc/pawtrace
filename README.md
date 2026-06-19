@@ -6,10 +6,17 @@ This is intended for defensive research, reverse engineering practice, binary be
 
 ## build
 
-```sh
+```bash
 make
+```
+
+![img](./screenshots/2026-06-19_13-06.png)    
+
+```bash
 make examples
 ```
+
+![img](./screenshots/2026-06-19_13-08.png)    
 
 ## usage
 
@@ -19,6 +26,8 @@ make examples
 ./pawtrace -j -o trace.jsonl -- /usr/bin/true
 ```
 
+![img](./screenshots/2026-06-19_13-09.png)    
+
 options:
 
 `-j`, `--json`: emit JSONL records.    
@@ -26,6 +35,9 @@ options:
 `-s`, `--string-max N`: cap remote string reads.    
 `-p`, `--preview-max N`: cap read/write buffer previews.    
 `-o`, `--output FILE`: write trace output to a file.    
+`-h`, `--help`: show usage.    
+
+`-s`, `-p`, and `-o` each require an argument; pawtrace exits with an error if it is missing. `N` must be in the range 1..1048576.    
 
 ## technical notes
 

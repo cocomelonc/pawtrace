@@ -54,6 +54,8 @@ ssize_t pt_remote_read(pid_t pid, unsigned long addr, void *buf, size_t len);
 char *pt_remote_str(pid_t pid, unsigned long addr, size_t max);
 char *pt_remote_preview(pid_t pid, unsigned long addr, size_t len, size_t max);
 
+void pt_json_escape(FILE *out, const char *s);
+
 char *pt_fd_path(pid_t pid, int fd);
 void pt_dump_maps(FILE *out, pid_t pid);
 void pt_dump_maps_json(FILE *out, pid_t pid);
