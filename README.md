@@ -1,6 +1,10 @@
 # pawtrace
 
-`pawtrace` is a Linux x86-64 syscall tracing sandbox written in C with a small assembly support layer. It launches a program under `ptrace`, follows forks/clones, pairs syscall enter/exit stops, decodes common syscall arguments, reads traced process memory for paths and small buffer previews, and can snapshot `/proc/<pid>/maps` around exec/exit events.    
+my tiny project `pawtrace` - is a Linux x86-64 syscall tracing sandbox written in C with a small assembly support layer.     
+
+![img](./screenshots/2026-06-19_14-10.png)    
+
+It launches a program under `ptrace`, follows forks/clones, pairs syscall enter/exit stops, decodes common syscall arguments, reads traced process memory for paths and small buffer previews, and can snapshot `/proc/<pid>/maps` around exec/exit events.    
 
 This is intended for defensive research, reverse engineering practice, binary behavior auditing, and red-team lab validation of what a process actually does at the syscall layer. It does not inject code, bypass controls, hide processes, or modify traced programs.    
 
