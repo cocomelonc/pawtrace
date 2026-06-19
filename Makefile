@@ -9,9 +9,13 @@ SRC := src/main.c src/trace.c src/decode.c src/remote.c src/proc.c
 ASM := asm/arch_x86_64.S
 OBJ := $(SRC:%.c=$(BUILD)/%.o) $(ASM:%.S=$(BUILD)/%.o)
 
-.PHONY: all clean examples
+.PHONY: all clean examples release
 
 all: $(BIN)
+
+release:
+	$(MAKE) clean
+	$(MAKE) LDFLAGS="$(LDFLAGS) -s"
 
 $(BIN): $(OBJ)
 	$(CC) $(LDFLAGS) -o $@ $^

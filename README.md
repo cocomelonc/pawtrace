@@ -10,6 +10,8 @@ This is intended for defensive research, reverse engineering practice, binary be
 make
 ```
 
+`make` produces a debug build (with `-g`). use `make release` for a stripped binary (no symbols/debug info, ~60% smaller on disk).
+
 ![img](./screenshots/2026-06-19_13-06.png)    
 
 ```bash
