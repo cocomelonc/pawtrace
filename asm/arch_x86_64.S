@@ -1,3 +1,4 @@
+/* author: cocomelonc */
 .text
 
 .globl pt_raw_syscall6
