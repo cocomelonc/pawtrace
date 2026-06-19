@@ -38,6 +38,8 @@ make examples
 
 ![img](./screenshots/2026-06-19_13-09.png)    
 
+![img](./screenshots/2026-06-19_15-54.png)    
+
 options:
 
 `-j`, `--json`: emit JSONL records.    
