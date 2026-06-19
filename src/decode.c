@@ -3,11 +3,15 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <arpa/inet.h>
 #include <linux/futex.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 const char *pt_syscall_name(long nr) {
   switch (nr) {
@@ -555,6 +559,41 @@ static void print_path_arg(FILE *out, pid_t pid, unsigned long addr, const struc
   }
 }
 
+static void print_sockaddr(FILE *out, pid_t pid, unsigned long addr, unsigned long len) {
+  if (!addr) {
+    fputs("NULL", out);
+    return;
+  }
+  struct sockaddr_storage ss;
+  memset(&ss, 0, sizeof(ss));
+  size_t want = len < sizeof(ss) ? len : sizeof(ss);
+  if (pt_remote_read(pid, addr, &ss, want) < (ssize_t)sizeof(sa_family_t)) {
+    fprintf(out, "0x%lx", addr);
+    return;
+  }
+  switch (ss.ss_family) {
+  case AF_INET: {
+    struct sockaddr_in *in = (struct sockaddr_in *)&ss;
+    char ip[INET_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET, &in->sin_addr, ip, sizeof(ip));
+    fprintf(out, "inet:%s:%u", ip, ntohs(in->sin_port));
+    break;
+  }
+  case AF_INET6: {
+    struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&ss;
+    char ip[INET6_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET6, &in6->sin6_addr, ip, sizeof(ip));
+    fprintf(out, "inet6:[%s]:%u", ip, ntohs(in6->sin6_port));
+    break;
+  }
+  case AF_UNIX:
+    fprintf(out, "unix:%s", ((struct sockaddr_un *)&ss)->sun_path);
+    break;
+  default:
+    fprintf(out, "af=%u", ss.ss_family);
+  }
+}
+
 static void print_common_enter(FILE *out, pid_t pid, const struct pt_syscall_frame *f,
                  const struct pt_config *cfg) {
   switch (f->nr) {
@@ -617,6 +656,15 @@ static void print_common_enter(FILE *out, pid_t pid, const struct pt_syscall_fra
     fprintf(out, " dirfd=%d path=", (int)f->args[0]);
     print_path_arg(out, pid, f->args[1], cfg);
     fprintf(out, " flags=0x%lx", f->args[3]);
+    break;
+  case 42:
+  case 49:
+    fprintf(out, " fd=%d addr=", (int)f->args[0]);
+    print_sockaddr(out, pid, f->args[1], f->args[2]);
+    break;
+  case 44:
+    fprintf(out, " fd=%d len=%lu dest=", (int)f->args[0], f->args[2]);
+    print_sockaddr(out, pid, f->args[4], f->args[5]);
     break;
   default:
     fprintf(out, " a0=0x%lx a1=0x%lx a2=0x%lx a3=0x%lx a4=0x%lx a5=0x%lx",

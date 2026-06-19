@@ -28,10 +28,13 @@ $(BUILD)/%.o: %.S
 	@mkdir -p $(dir $@)
 	$(AS) -c -o $@ $<
 
-examples: examples/chatter
+examples: examples/chatter examples/sock
 
 examples/chatter: examples/chatter.c asm/arch_x86_64.S
 	$(CC) $(CFLAGS) -Iinclude -o $@ examples/chatter.c asm/arch_x86_64.S
 
+examples/sock: examples/sock.c
+	$(CC) $(CFLAGS) -Iinclude -o $@ examples/sock.c
+
 clean:
-	rm -rf $(BUILD) $(BIN) examples/chatter
+	rm -rf $(BUILD) $(BIN) examples/chatter examples/sock

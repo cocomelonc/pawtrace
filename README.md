@@ -25,6 +25,7 @@ make examples
 ```sh
 ./pawtrace -- /bin/ls /tmp
 ./pawtrace -m -- examples/chatter
+./pawtrace -- examples/sock
 ./pawtrace -j -o trace.jsonl -- /usr/bin/true
 ```
 
@@ -62,7 +63,8 @@ the assembly file provides raw syscall and timestamp helpers:
 ## useful next extensions
 
 add an attach mode with `PTRACE_SEIZE`.   
-track fd lineage by updating an fd table on `open/openat/close/dup`.    
-add socket address decoding for `connect`, `bind`, `sendto`, and `recvfrom`.    
-add seccomp-BPF profile generation from observed syscall sets.    
+add socket address decoding for `recvfrom` and `accept` (exit-side, the address is an output).    
+add a dump of the observed syscall set at exit (seccomp allowlist seed).    
 add richer JSON argument decoding instead of raw numeric args.    
+
+`connect`, `bind`, and `sendto` already decode the destination address (`inet`/`inet6`/`unix`).    

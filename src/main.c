@@ -11,12 +11,12 @@ static void usage(FILE *out) {
     "usage: pawtrace [options] -- program [args...]\n"
     "\n"
     "options:\n"
-    "  -j, --json        emit JSONL records\n"
-    "  -m, --maps        dump /proc/<pid>/maps at exec and exit events\n"
+    "  -j, --json            emit JSONL records\n"
+    "  -m, --maps            dump /proc/<pid>/maps at exec and exit events\n"
     "  -s, --string-max N    maximum remote string bytes (default %d)\n"
     "  -p, --preview-max N   maximum buffer preview bytes (default %d)\n"
     "  -o, --output FILE     write trace to FILE\n"
-    "  -h, --help        show this help\n",
+    "  -h, --help            show this help\n",
     PT_DEFAULT_STRING_MAX, PT_DEFAULT_PREVIEW_MAX);
 }
 
