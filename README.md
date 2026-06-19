@@ -6,7 +6,7 @@ my tiny project `pawtrace` - is a Linux x86-64 syscall tracer written in C with 
 
 ![img](./screenshots/2026-06-19_14-10.png)    
 
-It launches a program under `ptrace`, follows forks/clones, pairs syscall enter/exit stops, decodes common syscall arguments, reads traced process memory for paths and small buffer previews, and can snapshot `/proc/<pid>/maps` around exec/exit events.    
+It launches a program under `ptrace`, follows forks/clones, pairs syscall enter/exit stops, decodes common syscall arguments, reads traced process memory for paths and small buffer previews, decodes socket addresses, flags writable+executable memory (`!W^X`), and can snapshot `/proc/<pid>/maps` around exec/exit events.    
 
 This is intended for defensive research, reverse engineering practice, binary behavior auditing, and red-team lab validation of what a process actually does at the syscall layer. It does not inject code, bypass controls, hide processes, or modify traced programs.    
 
@@ -28,10 +28,11 @@ make examples
 
 ## usage
 
-```sh
+```bash
 ./pawtrace -- /bin/ls /tmp
 ./pawtrace -m -- examples/chatter
 ./pawtrace -- examples/sock
+./pawtrace -e connect,sendto,bind -- examples/sock
 ./pawtrace -j -o trace.jsonl -- /usr/bin/true
 ```
 
@@ -44,9 +45,10 @@ options:
 `-s`, `--string-max N`: cap remote string reads.    
 `-p`, `--preview-max N`: cap read/write buffer previews.    
 `-o`, `--output FILE`: write trace output to a file.    
+`-e`, `--trace NAMES`: only show these syscalls (comma-separated, exact names).    
 `-h`, `--help`: show usage.    
 
-`-s`, `-p`, and `-o` each require an argument; pawtrace exits with an error if it is missing. `N` must be in the range 1..1048576.    
+`-s`, `-p`, `-o`, and `-e` each require an argument; pawtrace exits with an error if it is missing. `N` must be in the range 1..1048576.    
 
 ## technical notes
 
