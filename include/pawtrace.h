@@ -15,10 +15,16 @@
 struct pt_config {
   bool json;
   bool maps;
+  bool color;
   size_t string_max;
   size_t preview_max;
   const char *filter;
   FILE *out;
+};
+
+enum pt_color {
+  PT_C_RESET, PT_C_DIM, PT_C_BOLD, PT_C_RED, PT_C_GREEN,
+  PT_C_YELLOW, PT_C_BLUE, PT_C_CYAN, PT_C_MAGENTA
 };
 
 struct pt_syscall_frame {
@@ -45,6 +51,7 @@ uint64_t pt_rdtsc(void);
 
 int pt_trace_launch(char **argv, const struct pt_config *cfg);
 
+const char *pt_color(const struct pt_config *cfg, enum pt_color c);
 const char *pt_syscall_name(long nr);
 const char *pt_errno_name(long neg_ret);
 void pt_print_syscall_enter(FILE *out, pid_t pid, const struct pt_syscall_frame *f,

@@ -13,6 +13,15 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+// ANSI code for c, or "" when color is disabled (non-tty / json / NO_COLOR)
+const char *pt_color(const struct pt_config *cfg, enum pt_color c) {
+  static const char *const codes[] = {
+    "\x1b[0m", "\x1b[2m", "\x1b[1m", "\x1b[31m", "\x1b[32m",
+    "\x1b[33m", "\x1b[34m", "\x1b[36m", "\x1b[35m",
+  };
+  return cfg->color ? codes[c] : "";
+}
+
 const char *pt_syscall_name(long nr) {
   switch (nr) {
   case 0: return "read";
@@ -552,7 +561,7 @@ static void print_open_flags(FILE *out, unsigned long v) {
 static void print_path_arg(FILE *out, pid_t pid, unsigned long addr, const struct pt_config *cfg) {
   char *s = pt_remote_str(pid, addr, cfg->string_max);
   if (s) {
-    fprintf(out, "\"%s\"", s);
+    fprintf(out, "%s\"%s\"%s", pt_color(cfg, PT_C_YELLOW), s, pt_color(cfg, PT_C_RESET));
     free(s);
   } else {
     fprintf(out, "0x%lx", addr);
@@ -595,9 +604,10 @@ static void print_sockaddr(FILE *out, pid_t pid, unsigned long addr, unsigned lo
 }
 
 // flag memory that is both writable and executable (W^X violation)
-static void print_wx(FILE *out, unsigned long prot) {
+static void print_wx(FILE *out, const struct pt_config *cfg, unsigned long prot) {
   if ((prot & PROT_WRITE) && (prot & PROT_EXEC)) {
-    fputs(" !W^X", out);
+    fprintf(out, " %s%s!W^X%s", pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_RED),
+        pt_color(cfg, PT_C_RESET));
   }
 }
 
@@ -667,12 +677,12 @@ static void print_common_enter(FILE *out, pid_t pid, const struct pt_syscall_fra
     fputs(" flags=", out);
     print_mmap_flags(out, f->args[3]);
     fprintf(out, " fd=%d off=%lu", (int)f->args[4], f->args[5]);
-    print_wx(out, f->args[2]);
+    print_wx(out, cfg, f->args[2]);
     break;
   case 10:
     fprintf(out, " addr=0x%lx len=%lu prot=", f->args[0], f->args[1]);
     print_prot(out, f->args[2]);
-    print_wx(out, f->args[2]);
+    print_wx(out, cfg, f->args[2]);
     break;
   case 257:
     fprintf(out, " dirfd=%d path=", (int)f->args[0]);
@@ -712,7 +722,11 @@ void pt_print_syscall_enter(FILE *out, pid_t pid, const struct pt_syscall_frame 
         f->args[3], f->args[4], f->args[5]);
     return;
   }
-  fprintf(out, "pid=%d -> %s(%ld)", pid, pt_syscall_name(f->nr), f->nr);
+  fprintf(out, "%s%spid=%d%s %s->%s %s%s%s%s(%ld)",
+      pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_BLUE), pid, pt_color(cfg, PT_C_RESET),
+      pt_color(cfg, PT_C_CYAN), pt_color(cfg, PT_C_RESET),
+      pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_YELLOW), pt_syscall_name(f->nr),
+      pt_color(cfg, PT_C_RESET), f->nr);
   print_common_enter(out, pid, f, cfg);
   fputc('\n', out);
 }
@@ -743,14 +757,19 @@ void pt_print_syscall_exit(FILE *out, pid_t pid, const struct pt_syscall_frame *
   }
 
   const char *err = pt_errno_name(f->ret);
-  fprintf(out, "pid=%d <- %s = %ld", pid, pt_syscall_name(f->nr), f->ret);
+  const char *ret_c = err ? pt_color(cfg, PT_C_RED) : pt_color(cfg, PT_C_GREEN);
+  fprintf(out, "%s%spid=%d%s %s<-%s %s%s%s%s = %s%ld%s",
+      pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_BLUE), pid, pt_color(cfg, PT_C_RESET),
+      pt_color(cfg, PT_C_MAGENTA), pt_color(cfg, PT_C_RESET),
+      pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_YELLOW), pt_syscall_name(f->nr),
+      pt_color(cfg, PT_C_RESET), ret_c, f->ret, pt_color(cfg, PT_C_RESET));
   if (err) {
-    fprintf(out, " %s", err);
+    fprintf(out, " %s%s%s", pt_color(cfg, PT_C_RED), err, pt_color(cfg, PT_C_RESET));
   }
   if (f->nr == 0 && f->ret > 0) {
     char *p = pt_remote_preview(pid, f->args[1], (size_t)f->ret, cfg->preview_max);
     if (p) {
-      fprintf(out, " read=\"%s\"", p);
+      fprintf(out, " read=%s\"%s\"%s", pt_color(cfg, PT_C_YELLOW), p, pt_color(cfg, PT_C_RESET));
       free(p);
     }
   }

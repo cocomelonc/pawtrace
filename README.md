@@ -50,6 +50,8 @@ options:
 
 `-s`, `-p`, `-o`, and `-e` each require an argument; pawtrace exits with an error if it is missing. `N` must be in the range 1..1048576.    
 
+text output is colorized automatically when writing to a terminal (disabled for pipes, files, `-j` JSON, and when `NO_COLOR` is set).    
+
 ## technical notes
 
 on x86-64 Linux, syscall arguments are read from `rdi`, `rsi`, `rdx`, `r10`, `r8`, and `r9`; the syscall number is in `orig_rax`; the return value is in `rax`. `pawtrace` stores the enter-side frame so the exit-side return value can be interpreted with the original arguments.    

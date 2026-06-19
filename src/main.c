@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static void usage(FILE *out) {
   fprintf(out,
@@ -36,6 +37,7 @@ int main(int argc, char **argv) {
   struct pt_config cfg = {
     .json = false,
     .maps = false,
+    .color = false,
     .string_max = PT_DEFAULT_STRING_MAX,
     .preview_max = PT_DEFAULT_PREVIEW_MAX,
     .filter = NULL,
@@ -97,6 +99,9 @@ int main(int argc, char **argv) {
     usage(stderr);
     return 2;
   }
+
+  // color only for human text on a real terminal, unless NO_COLOR is set
+  cfg.color = !cfg.json && isatty(fileno(cfg.out)) && !getenv("NO_COLOR");
 
   int rc = pt_trace_launch(&argv[i], &cfg);
   if (cfg.out && cfg.out != stdout) {

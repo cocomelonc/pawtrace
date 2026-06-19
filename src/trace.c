@@ -100,7 +100,9 @@ static void log_event(FILE *out, const struct pt_config *cfg, const char *event,
     fprintf(out, "{\"event\":\"ptrace-%s\",\"pid\":%d,\"msg\":%lu}\n",
         event, pid, msg);
   } else {
-    fprintf(out, "pid=%d event=%s msg=%lu\n", pid, event, msg);
+    fprintf(out, "%s%spid=%d%s event=%s%s%s msg=%lu\n",
+        pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_BLUE), pid, pt_color(cfg, PT_C_RESET),
+        pt_color(cfg, PT_C_MAGENTA), event, pt_color(cfg, PT_C_RESET), msg);
   }
 }
 
@@ -171,7 +173,10 @@ int pt_trace_launch(char **argv, const struct pt_config *cfg) {
         fprintf(cfg->out, "{\"event\":\"process-exit\",\"pid\":%d,\"status\":%d}\n",
             pid, WEXITSTATUS(status));
       } else {
-        fprintf(cfg->out, "pid=%d exited status=%d\n", pid, WEXITSTATUS(status));
+        int es = WEXITSTATUS(status);
+        fprintf(cfg->out, "%s%spid=%d%s exited status=%s%d%s\n",
+            pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_BLUE), pid, pt_color(cfg, PT_C_RESET),
+            pt_color(cfg, es ? PT_C_RED : PT_C_GREEN), es, pt_color(cfg, PT_C_RESET));
       }
       state_del(&states, pid);
       continue;
@@ -181,7 +186,9 @@ int pt_trace_launch(char **argv, const struct pt_config *cfg) {
         fprintf(cfg->out, "{\"event\":\"process-signal\",\"pid\":%d,\"signal\":%d}\n",
             pid, WTERMSIG(status));
       } else {
-        fprintf(cfg->out, "pid=%d killed signal=%d\n", pid, WTERMSIG(status));
+        fprintf(cfg->out, "%s%spid=%d%s killed signal=%s%d%s\n",
+            pt_color(cfg, PT_C_BOLD), pt_color(cfg, PT_C_BLUE), pid, pt_color(cfg, PT_C_RESET),
+            pt_color(cfg, PT_C_RED), WTERMSIG(status), pt_color(cfg, PT_C_RESET));
       }
       state_del(&states, pid);
       continue;
