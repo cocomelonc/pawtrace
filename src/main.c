@@ -16,6 +16,7 @@ static void usage(FILE *out) {
     "  -s, --string-max N    maximum remote string bytes (default %d)\n"
     "  -p, --preview-max N   maximum buffer preview bytes (default %d)\n"
     "  -o, --output FILE     write trace to FILE\n"
+    "  -e, --trace NAMES     only show these syscalls (comma-separated)\n"
     "  -h, --help            show this help\n",
     PT_DEFAULT_STRING_MAX, PT_DEFAULT_PREVIEW_MAX);
 }
@@ -37,6 +38,7 @@ int main(int argc, char **argv) {
     .maps = false,
     .string_max = PT_DEFAULT_STRING_MAX,
     .preview_max = PT_DEFAULT_PREVIEW_MAX,
+    .filter = NULL,
     .out = stdout,
   };
 
@@ -77,6 +79,12 @@ int main(int argc, char **argv) {
         perror("fopen");
         return 2;
       }
+    } else if (!strcmp(argv[i], "-e") || !strcmp(argv[i], "--trace")) {
+      if (i + 1 >= argc) {
+        fprintf(stderr, "%s requires an argument\n", argv[i]);
+        return 2;
+      }
+      cfg.filter = argv[++i];
     } else if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
       usage(stdout);
       return 0;

@@ -1,6 +1,8 @@
 # pawtrace
 
-my tiny project `pawtrace` - is a Linux x86-64 syscall tracing sandbox written in C with a small assembly support layer.     
+my tiny project `pawtrace` - is a Linux x86-64 syscall tracer written in C with a small assembly support layer.     
+
+![img](./screenshots/2026-06-19_14-35.png)    
 
 ![img](./screenshots/2026-06-19_14-10.png)    
 

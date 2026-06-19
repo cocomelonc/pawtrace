@@ -594,6 +594,33 @@ static void print_sockaddr(FILE *out, pid_t pid, unsigned long addr, unsigned lo
   }
 }
 
+// flag memory that is both writable and executable (W^X violation)
+static void print_wx(FILE *out, unsigned long prot) {
+  if ((prot & PROT_WRITE) && (prot & PROT_EXEC)) {
+    fputs(" !W^X", out);
+  }
+}
+
+// true if name is a token of the comma-separated filter (or filter is unset)
+static bool pt_syscall_selected(const char *filter, const char *name) {
+  if (!filter) {
+    return true;
+  }
+  size_t len = strlen(name);
+  for (const char *p = filter; *p;) {
+    const char *comma = strchr(p, ',');
+    size_t tok = comma ? (size_t)(comma - p) : strlen(p);
+    if (tok == len && !strncmp(p, name, len)) {
+      return true;
+    }
+    if (!comma) {
+      break;
+    }
+    p = comma + 1;
+  }
+  return false;
+}
+
 static void print_common_enter(FILE *out, pid_t pid, const struct pt_syscall_frame *f,
                  const struct pt_config *cfg) {
   switch (f->nr) {
@@ -640,10 +667,12 @@ static void print_common_enter(FILE *out, pid_t pid, const struct pt_syscall_fra
     fputs(" flags=", out);
     print_mmap_flags(out, f->args[3]);
     fprintf(out, " fd=%d off=%lu", (int)f->args[4], f->args[5]);
+    print_wx(out, f->args[2]);
     break;
   case 10:
     fprintf(out, " addr=0x%lx len=%lu prot=", f->args[0], f->args[1]);
     print_prot(out, f->args[2]);
+    print_wx(out, f->args[2]);
     break;
   case 257:
     fprintf(out, " dirfd=%d path=", (int)f->args[0]);
@@ -674,6 +703,9 @@ static void print_common_enter(FILE *out, pid_t pid, const struct pt_syscall_fra
 
 void pt_print_syscall_enter(FILE *out, pid_t pid, const struct pt_syscall_frame *f,
               const struct pt_config *cfg) {
+  if (!pt_syscall_selected(cfg->filter, pt_syscall_name(f->nr))) {
+    return;
+  }
   if (cfg->json) {
     fprintf(out, "{\"event\":\"enter\",\"pid\":%d,\"nr\":%ld,\"name\":\"%s\",\"args\":[%lu,%lu,%lu,%lu,%lu,%lu]}\n",
         pid, f->nr, pt_syscall_name(f->nr), f->args[0], f->args[1], f->args[2],
@@ -687,6 +719,9 @@ void pt_print_syscall_enter(FILE *out, pid_t pid, const struct pt_syscall_frame 
 
 void pt_print_syscall_exit(FILE *out, pid_t pid, const struct pt_syscall_frame *f,
                const struct pt_config *cfg) {
+  if (!pt_syscall_selected(cfg->filter, pt_syscall_name(f->nr))) {
+    return;
+  }
   if (cfg->json) {
     const char *err = pt_errno_name(f->ret);
     fprintf(out, "{\"event\":\"exit\",\"pid\":%d,\"nr\":%ld,\"name\":\"%s\",\"ret\":%ld",

@@ -17,6 +17,7 @@ struct pt_config {
   bool maps;
   size_t string_max;
   size_t preview_max;
+  const char *filter;
   FILE *out;
 };
 
